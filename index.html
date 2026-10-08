@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perangkat Pembelajaran Akuntansi (PPA) - Kelas XI</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            pink: '#FFE5EC',
+                            rose: '#FFB3BA',
+                            blue: '#E0F2FE',
+                            teal: '#CCFBF1',
+                            purple: '#F3E8FF',
+                            amber: '#FEF3C7',
+                            gray: '#F8FAFC'
+                        },
+                        brand: {
+                            50: '#F0FDFA',
+                            100: '#CCFBF1',
+                            500: '#14B8A6',
+                            600: '#0D9488',
+                            700: '#0F766E'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // Fallback safely for Lucide icons
+        const Icon = ({ name, className = "w-5 h-5", size = 20, ...props }) => {
+            const IconComponent = window.lucideReact ? window.lucideReact[name] : null;
+            if (!IconComponent) {
+                return <span className={`inline-block border border-gray-300 rounded text-xs p-1 ${className}`}>[{name}]</span>;
+            }
+            return <IconComponent className={className} size={size} {...props} />;
+        };
+
+        const INITIAL_STUDENTS = [
+            { id: 1, nis: "2024001", name: "Aditya Pratama", gender: "L", attendance: "Hadir", scoreUtama: 88, scoreKeterampilan: 90 },
+            { id: 2, nis: "2024002", name: "Anisa Rahmawati", gender: "P", attendance: "Hadir", scoreUtama: 92, scoreKeterampilan: 95 },
+            { id: 3, nis: "2024003", name: "Bagus Setiawan", gender: "L", attendance: "Sakit", scoreUtama: 78, scoreKeterampilan: 82 },
+            { id: 4, nis: "2024004", name: "Citra Dewi", gender: "P", attendance: "Hadir", scoreUtama: 85, scoreKeterampilan: 88 },
+            { id: 5, nis: "2024005", name: "Deni Kurniawan", gender: "L", attendance: "Izin", scoreUtama: 80, scoreKeterampilan: 80 },
+            { id: 6, nis: "2024006", name: "Eka Putri", gender: "P", attendance: "Hadir", scoreUtama: 95, scoreKeterampilan: 96 },
+            { id: 7, nis: "2024007", name: "Fajar Nugraha", gender: "L", attendance: "Hadir", scoreUtama: 75, scoreKeterampilan: 78 },
+            { id: 8, nis: "2024008", name: "Gita Gutawa", gender: "P", attendance: "Hadir", scoreUtama: 90, scoreKeterampilan: 92 }
+        ];
+
+        const MODULES_DATA = [
+            {
+                id: 'mod1',
+                title: 'Modul 1: Konsep Dasar Akuntansi Perusahaan Jasa',
+                duration: '4 JP (2x Pertemuan)',
+                objective: 'Peserta didik mampu menjelaskan karakteristik perusahaan jasa dan mengidentifikasi mekanisme debit-kredit.',
+                content: `Perusahaan jasa adalah bisnis yang menawarkan produk non-fisik berupa layanan berkualitas kepada konsumen. 
+                
+Ciri-ciri Utama Perusahaan Jasa:
+1. Tidak berwujud (Intangibility)
+2. Tidak dapat dipisahkan (Inseparability)
+3. Keanekaragaman (Variability)
+4. Tidak dapat disimpan (Perishability)
+
+Aturan Debit & Kredit:
+- Aset (+ Debit, - Kredit)
+- Liabilitas (- Debit, + Kredit)
+- Ekuitas (- Debit, + Kredit)
+- Pendapatan (- Debit, + Kredit)
+- Beban (+ Debit, - Kredit)`
+            },
+            {
+                id: 'mod2',
+                title: 'Modul 2: Analisis Bukti Transaksi',
+                duration: '6 JP (3x Pertemuan)',
+                objective: 'Peserta didik mampu menganalisis kuitansi, faktur, nota kontan, dan bukti memorial.',
+                content: `Bukti Transaksi merupakan dokumen dasar pencatatan akuntansi.
+
+Jenis Bukti Transaksi:
+1. Kuitansi: Bukti penerimaan/pembayaran uang kas.
+2. Faktur (Invoice): Bukti penjualan/pembelian secara kredit.
+3. Nota Kontan: Bukti penjualan/pembelian secara tunai.
+4. Nota Debet/Kredit: Bukti pengembalian barang (retur).
+5. Bukti Memorial: Bukti kejadian internal seperti penyusutan atau penyesuaian.`
+            },
+            {
+                id: 'mod3',
+                title: 'Modul 3: Jurnal Umum & Buku Besar',
+                duration: '8 JP (4x Pertemuan)',
+                objective: 'Peserta didik mampu memposting transaksi ke Jurnal Umum dan memindahkan ke Buku Besar 4 Kolom.',
+                content: `Langkah-Langkah Pencatatan:
+1. Identifikasi nama akun yang terpengaruh.
+2. Tentukan posisi Debit atau Kredit.
+3. Masukkan tanggal, keterangan, dan nominal ke Jurnal Umum.
+4. Posting berkala ke Buku Besar sesuai Kode Akun (Ref).`
+            }
+        ];
+
+        const SIMULATION_CASES = [
+            {
+                id: 1,
+                title: "Kasus 1: Setoran Modal Awal",
+                description: "Pada tanggal 2 Januari 2024, Tn. Ahmad menyetorkan uang tunai sebesar Rp 15.000.000 sebagai modal awal Bengkel 'Ahmad Auto'.",
+                optionsDebit: ["Kas", "Modal Ahmad", "Beban Perlengkapan", "Peralatan"],
+                optionsKredit: ["Modal Ahmad", "Kas", "Pendapatan Jasa", "Utang Usaha"],
+                correctDebit: "Kas",
+                correctKredit: "Modal Ahmad",
+                amount: 15000000,
+                explanation: "Kas bertambah di Debit (+) karena menerima setoran tunai, dan Modal Ahmad bertambah di Kredit (+)."
+            },
+            {
+                id: 2,
+                title: "Kasus 2: Pembelian Peralatan Secara Kredit",
+                description: "Pada tanggal 5 Januari 2024, membeli peralatan bengkel senilai Rp 5.000.000 secara kredit dari PT Utomo.",
+                optionsDebit: ["Peralatan", "Beban Peralatan", "Kas", "Utang Usaha"],
+                optionsKredit: ["Utang Usaha", "Kas", "Modal Ahmad", "Peralatan"],
+                correctDebit: "Peralatan",
+                correctKredit: "Utang Usaha",
+                amount: 5000000,
+                explanation: "Peralatan bertambah di Debit (+) sebagai aset, dan Utang Usaha bertambah di Kredit (+) karena dibeli secara kredit."
+            },
+            {
+                id: 3,
+                title: "Kasus 3: Penerimaan Pendapatan Jasa",
+                description: "Pada tanggal 8 Januari 2024, diterima pendapatan jasa perbaikan kendaraan sebesar Rp 2.500.000 secara tunai.",
+                optionsDebit: ["Kas", "Pendapatan Jasa", "Piutang Usaha", "Modal"],
+                optionsKredit: ["Pendapatan Jasa", "Kas", "Utang Usaha", "Beban Jasa"],
+                correctDebit: "Kas",
+                correctKredit: "Pendapatan Jasa",
+                amount: 2500000,
+                explanation: "Kas bertambah di Debit (+) dari hasil layanan, dan Pendapatan Jasa bertambah di Kredit (+)."
+            }
+        ];
+
+        const QUIZ_QUESTIONS = [
+            {
+                id: 1,
+                question: "Manakah dari akun berikut yang memiliki saldo normal di sebelah Debit?",
+                options: ["Utang Usaha", "Pendapatan Jasa", "Beban Gaji", "Modal Pemilik"],
+                answer: 2
+            },
+            {
+                id: 2,
+                question: "Dokumen transaksi pembelian barang/jasa yang dilakukan secara kredit disebut...",
+                options: ["Kuitansi", "Faktur", "Cek", "Nota Kontan"],
+                answer: 1
+            },
+            {
+                id: 3,
+                question: "Jika Beban dibayar dimuka bertambah, maka akun tersebut dicatat di posisi...",
+                options: ["Debit", "Kredit", "Saldo", "Ekuitas"],
+                answer: 0
+            }
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('rpp');
+            const [students, setStudents] = useState(INITIAL_STUDENTS);
+            const [toastMessage, setToastMessage] = useState(null);
+
+            // Toast Alert Helper
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 3000);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+                    {/* Header */}
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="bg-teal-500 text-white p-2.5 rounded-xl shadow-md">
+                                    <Icon name="BookOpen" className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h1 className="font-bold text-lg leading-tight text-slate-800">PPA Akuntansi XI</h1>
+                                    <p className="text-xs text-slate-500">Perangkat Pembelajaran - Praktik Perusahaan Jasa</p>
+                                </div>
+                            </div>
+                            <div className="hidden md:flex items-center space-x-2 text-xs font-medium">
+                                <span className="bg-teal-50 text-teal-700 px-3 py-1.5 rounded-full border border-teal-200">Kurikulum Merdeka</span>
+                                <span className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200">Fase F / Kelas XI</span>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Navigation Tabs */}
+                    <nav className="bg-white border-b border-slate-200 no-print overflow-x-auto custom-scrollbar">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 py-2 min-w-max">
+                            {[
+                                { id: 'rpp', label: 'RPP / Modul Ajar', icon: 'FileText' },
+                                { id: 'modules', label: 'Bahan Ajar', icon: 'Book' },
+                                { id: 'simulation', label: 'Simulasi Jurnal', icon: 'Calculator' },
+                                { id: 'lkpd', label: 'Generator LKPD', icon: 'Printer' },
+                                { id: 'game', label: 'Kuis & Game', icon: 'Gamepad2' },
+                                { id: 'attendance', label: 'Presensi & Nilai', icon: 'Users' }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                                        activeTab === tab.id
+                                            ? 'bg-teal-500 text-white shadow-sm'
+                                            : 'text-slate-600 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    <Icon name={tab.icon} className="w-4 h-4" />
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+
+                    {/* Notification Toast */}
+                    {toastMessage && (
+                        <div className="fixed bottom-5 right-5 z-50 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 transition-all animate-bounce">
+                            <Icon name="CheckCircle" className="w-5 h-5 text-teal-400" />
+                            <span className="text-sm font-medium">{toastMessage}</span>
+                        </div>
+                    )}
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        {activeTab === 'rpp' && <RPPSection showToast={showToast} />}
+                        {activeTab === 'modules' && <ModulesSection />}
+                        {activeTab === 'simulation' && <SimulationSection showToast={showToast} />}
+                        {activeTab === 'lkpd' && <LKPDSection showToast={showToast} />}
+                        {activeTab === 'game' && <GameSection showToast={showToast} />}
+                        {activeTab === 'attendance' && <AttendanceSection students={students} setStudents={setStudents} showToast={showToast} />}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 no-print">
+                        <p>© 2026 Perangkat Pembelajaran Akuntansi (PPA) XI. Didesain untuk Pembelajaran Interaktif.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        function RPPSection({ showToast }) {
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm no-print">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Modul Ajar / RPP Akuntansi</h2>
+                            <p className="text-xs text-slate-500">Praktik Akuntansi Perusahaan Jasa (Kelas XI)</p>
+                        </div>
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center space-x-2 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                        >
+                            <Icon name="Printer" className="w-4 h-4" />
+                            <span>Cetak Modul Ajar</span>
+                        </button>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 print:shadow-none print:border-none print:p-0">
+                        <div className="border-b border-slate-200 pb-4 text-center">
+                            <h2 className="text-xl font-bold uppercase tracking-wide text-slate-900">MODUL AJAR KURIKULUM MERDEKA</h2>
+                            <p className="text-sm text-slate-600 font-medium mt-1">Mata Pelajaran: Akuntansi dan Keuangan Lembaga</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl text-sm border border-slate-100">
+                            <div><strong className="text-slate-700">Satuan Pendidikan:</strong> SMK Negeri 1 Akuntansi</div>
+                            <div><strong className="text-slate-700">Kelas / Fase:</strong> XI / Fase F</div>
+                            <div><strong className="text-slate-700">Materi Pokok:</strong> Akuntansi Perusahaan Jasa</div>
+                            <div><strong className="text-slate-700">Alokasi Waktu:</strong> 18 JP (6 Pertemuan)</div>
+                        </div>
+
+                        <div className="space-y-4 text-sm leading-relaxed text-slate-700">
+                            <section>
+                                <h3 className="font-bold text-teal-700 border-b border-teal-100 pb-1 mb-2 flex items-center space-x-2">
+                                    <Icon name="Target" className="w-4 h-4" />
+                                    <span>A. Capaian Pembelajaran (CP)</span>
+                                </h3>
+                                <p>Pada akhir Fase F, peserta didik mampu menganalisis siklus akuntansi perusahaan jasa, mulai dari pencatatan bukti transaksi ke jurnal umum, posting buku besar, hingga penyusunan laporan keuangan secara teliti dan mandiri.</p>
+                            </section>
+
+                            <section>
+                                <h3 className="font-bold text-teal-700 border-b border-teal-100 pb-1 mb-2 flex items-center space-x-2">
+                                    <Icon name="Compass" className="w-4 h-4" />
+                                    <span>B. Profil Pelajar Pancasila</span>
+                                </h3>
+                                <ul className="list-disc list-inside space-y-1 pl-2">
+                                    <li>Bernalar Kritis: Menganalisis kebenaran bukti transaksi.</li>
+                                    <li>Mandiri: Menyelesaikan tahapan jurnal umum secara teliti.</li>
+                                    <li>Gotong Royong: Berdiskusi dalam kelompok pemecahan studi kasus.</li>
+                                </ul>
+                            </section>
+
+                            <section>
+                                <h3 className="font-bold text-teal-700 border-b border-teal-100 pb-1 mb-2 flex items-center space-x-2">
+                                    <Icon name="Layers" className="w-4 h-4" />
+                                    <span>C. Kegiatan Pembelajaran (Model Problem-Based Learning)</span>
+                                </h3>
+                                <div className="space-y-2 pl-2">
+                                    <p><strong>1. Pendahuluan (15 Menit):</strong> Guru membuka kelas, berdoa, memeriksa presensi, dan memberikan apersepsi terkait transaksi harian.</p>
+                                    <p><strong>2. Kegiatan Inti (105 Menit):</strong></p>
+                                    <ul className="list-disc list-inside pl-4 space-y-1 text-slate-600">
+                                        <li>Orientasi peserta didik pada masalah (Menampilkan bukti transaksi riil).</li>
+                                        <li>Mengorganisasikan siswa untuk belajar (Membentuk kelompok kecil).</li>
+                                        <li>Membimbing penyelidikan individu/kelompok (Menggunakan Simulasi Jurnal PPA).</li>
+                                        <li>Membuka diskusi hasil analisis transaksi.</li>
+                                    </ul>
+                                    <p><strong>3. Penutup (15 Menit):</strong> Refleksi pembelajaran, kuis singkat, dan penugasan mandiri.</p>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function ModulesSection() {
+            const [selectedModule, setSelectedModule] = useState(MODULES_DATA[0]);
+
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                        <h2 className="text-base font-bold text-slate-800 mb-2">Daftar Materi Ajar</h2>
+                        {MODULES_DATA.map((mod) => (
+                            <div
+                                key={mod.id}
+                                onClick={() => setSelectedModule(mod)}
+                                className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                                    selectedModule.id === mod.id
+                                        ? 'bg-teal-50 border-teal-300 shadow-sm'
+                                        : 'bg-white border-slate-200 hover:border-slate-300'
+                                }`}
+                            >
+                                <h3 className="font-semibold text-sm text-slate-800">{mod.title}</h3>
+                                <p className="text-xs text-slate-500 mt-1 flex items-center">
+                                    <Icon name="Clock" className="w-3 h-3 mr-1" />
+                                    {mod.duration}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div className="border-b border-slate-100 pb-3">
+                            <span className="text-xs font-semibold text-teal-600 uppercase tracking-wider">Bahan Ajar Interaktif</span>
+                            <h3 className="text-xl font-bold text-slate-900 mt-1">{selectedModule.title}</h3>
+                            <p className="text-xs text-slate-500 mt-1">Alokasi Waktu: {selectedModule.duration}</p>
+                        </div>
+
+                        <div className="bg-slate-50 p-3.5 rounded-xl text-xs text-slate-700 border border-slate-100">
+                            <strong>Tujuan Pembelajaran:</strong> {selectedModule.objective}
+                        </div>
+
+                        <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line font-normal">
+                            {selectedModule.content}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function SimulationSection({ showToast }) {
+            const [caseIdx, setCaseIdx] = useState(0);
+            const [debitInput, setDebitInput] = useState('');
+            const [kreditInput, setKreditInput] = useState('');
+            const [feedback, setFeedback] = useState(null);
+
+            const currentCase = SIMULATION_CASES[caseIdx];
+
+            const handleCheck = () => {
+                if (!debitInput || !kreditInput) {
+                    showToast("Harap pilih akun Debit dan Kredit!");
+                    return;
+                }
+
+                if (debitInput === currentCase.correctDebit && kreditInput === currentCase.correctKredit) {
+                    setFeedback({
+                        success: true,
+                        message: "Sangat Tepat! Analisis akun dan posisi saldo Anda benar."
+                    });
+                    showToast("Jawaban Benar! +10 Poin");
+                } else {
+                    setFeedback({
+                        success: false,
+                        message: `Kurang tepat. Jawaban yang benar adalah Debit: ${currentCase.correctDebit} & Kredit: ${currentCase.correctKredit}.`
+                    });
+                }
+            };
+
+            const handleNext = () => {
+                setDebitInput('');
+                setKreditInput('');
+                setFeedback(null);
+                setCaseIdx((prev) => (prev + 1) % SIMULATION_CASES.length);
+            };
+
+            return (
+                <div className="max-w-3xl mx-auto space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h2 className="text-lg font-bold text-slate-800">{currentCase.title}</h2>
+                            <span className="text-xs bg-teal-100 text-teal-800 px-2.5 py-1 rounded-full font-medium">
+                                Level {caseIdx + 1} dari {SIMULATION_CASES.length}
+                            </span>
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-sm text-slate-700">
+                            <p className="font-medium text-amber-900 mb-1">Studi Kasus Transaksi:</p>
+                            <p>{currentCase.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Akun DEBIT (+)</label>
+                                <select
+                                    value={debitInput}
+                                    onChange={(e) => setDebitInput(e.target.value)}
+                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                >
+                                    <option value="">-- Pilih Akun Debit --</option>
+                                    {currentCase.optionsDebit.map((opt, i) => (
+                                        <option key={i} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Akun KREDIT (+)</label>
+                                <select
+                                    value={kreditInput}
+                                    onChange={(e) => setKreditInput(e.target.value)}
+                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                >
+                                    <option value="">-- Pilih Akun Kredit --</option>
+                                    {currentCase.optionsKredit.map((opt, i) => (
+                                        <option key={i} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex space-x-3 pt-2">
+                            <button
+                                onClick={handleCheck}
+                                className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm"
+                            >
+                                Periksa Analisis
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition-colors"
+                            >
+                                Kasus Berikutnya
+                            </button>
+                        </div>
+
+                        {feedback && (
+                            <div className={`p-4 rounded-xl text-sm border ${
+                                feedback.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+                            }`}>
+                                <p className="font-semibold">{feedback.message}</p>
+                                <p className="text-xs mt-1 text-slate-600"><strong>Penjelasan:</strong> {currentCase.explanation}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function LKPDSection({ showToast }) {
+            const [companyName, setCompanyName] = useState('Bengkel Jaya Mandiri');
+            const [period, setPeriod] = useState('Januari 2024');
+
+            const handlePrintLKPD = () => {
+                showToast("Mencetak LKPD...");
+                setTimeout(() => window.print(), 500);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4 no-print">
+                        <div className="flex items-center space-x-3">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600">Nama Usaha / Bengkel</label>
+                                <input
+                                    type="text"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600">Periode</label>
+                                <input
+                                    type="text"
+                                    value={period}
+                                    onChange={(e) => setPeriod(e.target.value)}
+                                    className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handlePrintLKPD}
+                            className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center space-x-2"
+                        >
+                            <Icon name="Printer" className="w-4 h-4" />
+                            <span>Cetak LKPD</span>
+                        </button>
+                    </div>
+
+                    {/* Printable LKPD Sheet */}
+                    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 print:shadow-none print:border-none print:p-0">
+                        <div className="text-center border-b border-slate-200 pb-4">
+                            <h2 className="text-xl font-bold uppercase tracking-wide">LEMBAR KERJA PESERTA DIDIK (LKPD)</h2>
+                            <p className="text-sm text-slate-600">Pencatatan Transaksi ke Dalam Jurnal Umum</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div><strong>Nama Siswa:</strong> ________________________</div>
+                            <div><strong>Kelas / Kelompok:</strong> ________________________</div>
+                            <div><strong>Nama Perusahaan:</strong> {companyName}</div>
+                            <div><strong>Periode:</strong> {period}</div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h4 className="font-semibold text-sm">Petunjuk Kerja:</h4>
+                            <ol className="list-decimal list-inside text-xs text-slate-600 space-y-1">
+                                <li>Cermati data transaksi yang diberikan oleh guru.</li>
+                                <li>Analisis akun yang terpengaruh di posisi Debit dan Kredit.</li>
+                                <li>Isikan tanggal, nama akun, ref, serta jumlah ke dalam tabel Jurnal Umum di bawah ini.</li>
+                            </ol>
+                        </div>
+
+                        {/* Blank General Journal Table for Practice */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border border-slate-300 text-xs">
+                                <thead>
+                                    <tr className="bg-slate-100 text-slate-700">
+                                        <th className="border border-slate-300 p-2 w-24">Tanggal</th>
+                                        <th className="border border-slate-300 p-2">Keterangan / Nama Akun</th>
+                                        <th className="border border-slate-300 p-2 w-16 text-center">Ref</th>
+                                        <th className="border border-slate-300 p-2 text-right w-32">Debit (Rp)</th>
+                                        <th className="border border-slate-300 p-2 text-right w-32">Kredit (Rp)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[...Array(8)].map((_, idx) => (
+                                        <tr key={idx} className="h-10">
+                                            <td className="border border-slate-300 p-2"></td>
+                                            <td className="border border-slate-300 p-2"></td>
+                                            <td className="border border-slate-300 p-2"></td>
+                                            <td className="border border-slate-300 p-2"></td>
+                                            <td className="border border-slate-300 p-2"></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function GameSection({ showToast }) {
+            const [currentQ, setCurrentQ] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+
+            const handleAnswer = (optionIdx) => {
+                if (optionIdx === QUIZ_QUESTIONS[currentQ].answer) {
+                    setScore((prev) => prev + 10);
+                    showToast("Jawaban Benar!");
+                } else {
+                    showToast("Jawaban Salah!");
+                }
+
+                if (currentQ + 1 < QUIZ_QUESTIONS.length) {
+                    setCurrentQ((prev) => prev + 1);
+                } else {
+                    setShowResult(true);
+                }
+            };
+
+            const resetQuiz = () => {
+                setCurrentQ(0);
+                setScore(0);
+                setShowResult(false);
+            };
+
+            return (
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
+                        {!showResult ? (
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
+                                    <span>Pertanyaan {currentQ + 1} dari {QUIZ_QUESTIONS.length}</span>
+                                    <span>Poin Saat Ini: {score}</span>
+                                </div>
+
+                                <h3 className="text-base font-bold text-slate-800">
+                                    {QUIZ_QUESTIONS[currentQ].question}
+                                </h3>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {QUIZ_QUESTIONS[currentQ].options.map((opt, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleAnswer(idx)}
+                                            className="w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50 transition-all font-medium text-sm text-slate-700"
+                                        >
+                                            {String.fromCharCode(65 + idx)}. {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 py-6">
+                                <div className="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                                    🏆
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">Kuis Selesai!</h3>
+                                <p className="text-sm text-slate-600">Total Skor Akhir Anda: <strong className="text-teal-600 text-lg">{score}</strong></p>
+                                <button
+                                    onClick={resetQuiz}
+                                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm"
+                                >
+                                    Ulangi Kuis
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function AttendanceSection({ students, setStudents, showToast }) {
+            const handleAttendanceChange = (id, newStatus) => {
+                setStudents(students.map(s => s.id === id ? { ...s, attendance: newStatus } : s));
+                showToast("Status presensi diperbarui");
+            };
+
+            const handleScoreChange = (id, field, value) => {
+                const numVal = parseInt(value) || 0;
+                setStudents(students.map(s => s.id === id ? { ...s, [field]: numVal } : s));
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <div>
+                                <h2 className="text-base font-bold text-slate-800">Presensi & Penilaian Siswa</h2>
+                                <p className="text-xs text-slate-500">Kelas XI Akuntansi dan Keuangan Lembaga</p>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase tracking-wider">
+                                        <th className="p-3">NIS</th>
+                                        <th className="p-3">Nama Siswa</th>
+                                        <th className="p-3">JK</th>
+                                        <th className="p-3">Presensi</th>
+                                        <th className="p-3">Nilai Pengetahuan</th>
+                                        <th className="p-3">Nilai Keterampilan</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {students.map((student) => (
+                                        <tr key={student.id} className="hover:bg-slate-50">
+                                            <td className="p-3 font-mono text-xs text-slate-500">{student.nis}</td>
+                                            <td className="p-3 font-medium text-slate-800">{student.name}</td>
+                                            <td className="p-3 text-xs">{student.gender}</td>
+                                            <td className="p-3">
+                                                <select
+                                                    value={student.attendance}
+                                                    onChange={(e) => handleAttendanceChange(student.id, e.target.value)}
+                                                    className="border border-slate-200 rounded px-2 py-1 text-xs outline-none focus:border-teal-500"
+                                                >
+                                                    <option value="Hadir">Hadir</option>
+                                                    <option value="Izin">Izin</option>
+                                                    <option value="Sakit">Sakit</option>
+                                                    <option value="Alpha">Alpha</option>
+                                                </select>
+                                            </td>
+                                            <td className="p-3">
+                                                <input
+                                                    type="number"
+                                                    value={student.scoreUtama}
+                                                    onChange={(e) => handleScoreChange(student.id, 'scoreUtama', e.target.value)}
+                                                    className="w-16 border border-slate-200 rounded px-2 py-1 text-xs text-center outline-none focus:border-teal-500"
+                                                />
+                                            </td>
+                                            <td className="p-3">
+                                                <input
+                                                    type="number"
+                                                    value={student.scoreKeterampilan}
+                                                    onChange={(e) => handleScoreChange(student.id, 'scoreKeterampilan', e.target.value)}
+                                                    className="w-16 border border-slate-200 rounded px-2 py-1 text-xs text-center outline-none focus:border-teal-500"
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
